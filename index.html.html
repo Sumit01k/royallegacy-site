@@ -232,7 +232,7 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
   <div class="hero-eyebrow">BGMI · Battlegrounds Mobile India</div>
   <img class="hero-logo" id="heroLogoImg" style="display:none;">
   <h1>ROYAL LEGACY<br>ESPORTS</h1>
-  <p class="hero-sub" id="heroTagline">Connecting to cloud architecture panel...</p>
+  <p class="hero-sub" id="heroTagline">Loading platform layout parameters...</p>
   <div class="hero-actions">
     <a class="btn btn-primary" href="#register" onclick="scrollTo('register')">Register Your Squad</a>
     <a class="btn btn-ghost" href="#tournament" onclick="scrollTo('tournament')">View Tournament</a>
@@ -362,12 +362,11 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
 
 <script>
 // ======================================================================================
-// 🚀 CONNECTED CLOUD SERVICE ROUTER PIPELINE KEYS
+// 🚀 LIVE CONNECTED CLOUD RUNTIME ENDPOINT PIPELINE
 // ======================================================================================
 const BIN_ID = '6a4cdcd8da38895dfe3a24d0'; 
 const SECRET_KEY = '$2a$10$YR6NMF0MPIGf9LzHil.sgO.57UeDvNBmc9d.unTKOh5xIlNyOsTki'; 
 
-// Google Apps Script endpoint for standard text sheet registration streams
 const SHEET_REG_URL = 'https://script.google.com/macros/s/AKfycby2ECfo38vFP5ObQixdWfXz4sldf3FOgruMJg0RDPzmbLBvocbcbYU7VfDVEl3JC4CnqQ/exec';
 
 let CONTENT = null;
@@ -441,12 +440,8 @@ function resizeImage(file, maxDim, quality){
   });
 }
 
-// ------------------------------------------------------------------------------
-// GLOBAL CONFIGURATION ROUTING (Handles initialization automatically if blank)
-// ------------------------------------------------------------------------------
 async function loadContent(){
   if(BIN_ID.includes('00000000') || SECRET_KEY.includes('XXXXX')){
-    console.warn("Keys unconfigured. Running inside local sandboxed engine.");
     CONTENT = structuredClone(DEFAULT_CONTENT);
     return;
   }
@@ -457,9 +452,7 @@ async function loadContent(){
     });
     const json = await res.json();
     
-    // Auto-Initialization Check: If server bin is blank, program values instantly
     if(json && json.record && (Object.keys(json.record).length === 1 || !json.record.heroTagline)) {
-      console.log("Empty server template detected. Initializing database schema configuration properties...");
       CONTENT = structuredClone(DEFAULT_CONTENT);
       await saveContent(); 
     } else if (json && json.record) {
@@ -468,7 +461,6 @@ async function loadContent(){
       CONTENT = structuredClone(DEFAULT_CONTENT);
     }
   } catch(e) {
-    console.error("Cloud backend disconnect. Accessing emergency browser storage blocks.", e);
     try {
       const backup = localStorage.getItem('site-content');
       CONTENT = backup ? JSON.parse(backup) : structuredClone(DEFAULT_CONTENT);
@@ -485,10 +477,7 @@ async function loadContent(){
 
 async function saveContent(){
   localStorage.setItem('site-content', JSON.stringify(CONTENT));
-  
-  if(BIN_ID.includes('00000000') || SECRET_KEY.includes('XXXXX')){
-    return;
-  }
+  if(BIN_ID.includes('00000000') || SECRET_KEY.includes('XXXXX')) return;
 
   try {
     await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
@@ -501,7 +490,6 @@ async function saveContent(){
     });
     showToast('Changes synchronized globally across all devices!');
   } catch(e) {
-    console.error("Cloud synchronization timeout pipeline error.", e);
     showToast('Failed to write changes to cloud server database.');
   }
 }
@@ -520,7 +508,6 @@ async function loadRegistrations(){
   }catch(e){ REGISTRATIONS = []; }
 }
 async function saveRegistration(reg){ localStorage.setItem('reg:'+reg.id, JSON.stringify(reg)); }
-// ------------------------------------------------------------------------------
 
 const SOCIAL_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>',
@@ -751,6 +738,9 @@ function renderAdminMain(){
   if(activeTab === 'moderators') return renderModeratorsTab(main);
 }
 
+// --------------------------------------------------------------------------------------
+// RENDER ADMIN PANELS: Includes alternative URL fields for link pasting options
+// --------------------------------------------------------------------------------------
 function renderContentTab(main){
   const t = CONTENT.tournament, s = CONTENT.stats;
   main.innerHTML = `
@@ -759,7 +749,8 @@ function renderContentTab(main){
 
     <div class="a-card">
       <h4>Main Org Logo (Top Left)</h4>
-      <div class="desc" style="margin-bottom:10px;">Uploading a logo here will replace the default "TRL" crest and text.</div>
+      <div class="desc" style="margin-bottom:10px;">Upload a file OR paste a direct image URL link.</div>
+      <div class="a-field"><label>Or Paste Logo Image URL</label><input id="orgLogoUrl" value="${escapeHtml(CONTENT.orgLogo && CONTENT.orgLogo.startsWith('http') ? CONTENT.orgLogo : '')}" placeholder="https://imgur.com/example.png"></div>
       <input type="file" accept="image/*" id="orgLogoFile">
       ${CONTENT.orgLogo ? `<img src="${CONTENT.orgLogo}" class="thumb-sq" style="width:auto; height:42px;">` : '<div style="color:var(--text-dim); font-size:13px; margin-top:8px;">Using default TRL crest.</div>'}
       <div style="margin-top:14px;"><button class="a-btn" onclick="saveOrgLogo()">Save Logo</button> ${CONTENT.orgLogo ? '<button class="a-btn secondary" onclick="removeOrgLogo()">Remove Logo</button>' : ''}</div>
@@ -767,8 +758,9 @@ function renderContentTab(main){
 
     <div class="a-card">
       <h4>Top Right Image Button</h4>
-      <div class="desc" style="margin-bottom:10px;">Add a secondary image (like a sponsor or affiliate) next to the Register button.</div>
+      <div class="desc" style="margin-bottom:10px;">Add a secondary image next to the Register button.</div>
       <div class="a-field"><label>Link URL (where it goes when clicked)</label><input id="in_navRightLink" value="${escapeHtml(CONTENT.navRightLink||'')}"></div>
+      <div class="a-field"><label>Or Paste Right Logo Image URL</label><input id="rightLogoUrl" value="${escapeHtml(CONTENT.navRightLogo && CONTENT.navRightLogo.startsWith('http') ? CONTENT.navRightLogo : '')}" placeholder="https://imgur.com/example.png"></div>
       <input type="file" accept="image/*" id="rightLogoFile">
       ${CONTENT.navRightLogo ? `<img src="${CONTENT.navRightLogo}" class="thumb-sq" style="width:auto; height:36px;">` : ''}
       <div style="margin-top:14px;">
@@ -789,6 +781,8 @@ function renderContentTab(main){
 
     <div class="a-card">
       <h4>Tournament Banner</h4>
+      <div class="desc" style="margin-bottom:10px;">Upload a file OR paste a direct banner URL link.</div>
+      <div class="a-field"><label>Or Paste Banner Image URL</label><input id="bannerUrl" value="${escapeHtml(t.banner && t.banner.startsWith('http') ? t.banner : '')}" placeholder="https://imgur.com/banner.jpg"></div>
       <input type="file" accept="image/*" id="bannerFile">
       ${t.banner ? `<img src="${t.banner}" class="thumb60">` : ''}
     </div>
@@ -813,8 +807,14 @@ function renderContentTab(main){
 
 async function saveRightLogo(){
   const file = document.getElementById('rightLogoFile').files[0];
+  const urlLink = document.getElementById('rightLogoUrl').value.trim();
   CONTENT.navRightLink = document.getElementById('in_navRightLink').value.trim();
-  if(file){ CONTENT.navRightLogo = await resizeImage(file, 300, 0.85); }
+  
+  if (urlLink) {
+    CONTENT.navRightLogo = urlLink;
+  } else if(file){ 
+    CONTENT.navRightLogo = await resizeImage(file, 300, 0.85); 
+  }
   await saveContent();
   renderPublic();
   renderContentTab(document.getElementById('adminMain'));
@@ -831,8 +831,16 @@ async function removeRightLogo(){
 
 async function saveOrgLogo(){
   const file = document.getElementById('orgLogoFile').files[0];
-  if(!file){ showToast('Choose an image first'); return; }
-  CONTENT.orgLogo = await resizeImage(file, 300, 0.85);
+  const urlLink = document.getElementById('orgLogoUrl').value.trim();
+  
+  if (urlLink) {
+    CONTENT.orgLogo = urlLink;
+  } else if (file) { 
+    CONTENT.orgLogo = await resizeImage(file, 300, 0.85); 
+  } else {
+    showToast('Choose an image file or paste a link first'); 
+    return; 
+  }
   await saveContent();
   renderPublic();
   renderContentTab(document.getElementById('adminMain'));
@@ -862,7 +870,13 @@ async function saveContentTab(){
   t.desc = document.getElementById('in_desc').value;
 
   const bannerFile = document.getElementById('bannerFile').files[0];
-  if(bannerFile){ t.banner = await resizeImage(bannerFile, 1200, 0.78); }
+  const bannerUrl = document.getElementById('bannerUrl').value.trim();
+  
+  if (bannerUrl) {
+    t.banner = bannerUrl;
+  } else if(bannerFile){ 
+    t.banner = await resizeImage(bannerFile, 1200, 0.78); 
+  }
   await saveContent();
   renderPublic();
   renderContentTab(document.getElementById('adminMain'));
@@ -877,9 +891,10 @@ function renderSponsorsTab(main){
       <h4>Add Sponsor</h4>
       <div class="a-row">
         <div class="a-field"><label>Sponsor Name</label><input id="sp_name" placeholder="Sponsor Co."></div>
-        <div class="a-field"><label>Sponsor Link (website or social)</label><input id="sp_link" placeholder="https://sponsor.com or their Instagram/Discord link"></div>
+        <div class="a-field"><label>Sponsor Link (website or social)</label><input id="sp_link" placeholder="https://sponsor.com"></div>
       </div>
-      <div class="a-field"><label>Sponsor Logo</label><input type="file" accept="image/*" id="sp_logo"></div>
+      <div class="a-field"><label>Sponsor Logo Link URL (Alternative)</label><input id="sp_logo_url" placeholder="https://imgur.com/logo.png"></div>
+      <div class="a-field"><label>Or Upload Sponsor Logo File</label><input type="file" accept="image/*" id="sp_logo"></div>
       <button class="a-btn" onclick="addSponsor()">Add Sponsor</button>
     </div>
     <div class="a-card">
@@ -899,9 +914,17 @@ async function addSponsor(){
   const name = document.getElementById('sp_name').value.trim();
   const link = document.getElementById('sp_link').value.trim();
   const file = document.getElementById('sp_logo').files[0];
+  const urlLink = document.getElementById('sp_logo_url').value.trim();
+  
   if(!name){ showToast('Enter a sponsor name'); return; }
   let logo = null;
-  if(file) logo = await resizeImage(file, 200, 0.8);
+  
+  if (urlLink) {
+    logo = urlLink;
+  } else if(file) {
+    logo = await resizeImage(file, 200, 0.8);
+  }
+  
   CONTENT.sponsors.push({ name, link, logo });
   await saveContent();
   renderPublic();
@@ -919,7 +942,7 @@ async function removeSponsor(i){
 function renderContactTab(main){
   main.innerHTML = `
     <h2>Contact Us</h2>
-    <div class="desc">Your public contact email, plus Discord, Instagram and YouTube — each logo click sends visitors straight to the link you set.</div>
+    <div class="desc">Your public contact email, plus Discord, Instagram and YouTube.</div>
     <div class="a-card">
       <h4>Contact Email</h4>
       <div class="a-field"><input id="ct_email" value="${escapeHtml(CONTENT.contact.email)}" placeholder="contact@yourorg.com"></div>
@@ -969,7 +992,7 @@ function renderRegistrationsTab(main){
 
   main.innerHTML = `
     <h2>Registrations</h2>
-    <div class="desc">${REGISTRATIONS.length} squad(s) submitted. ${canSeeSensitive ? '' : 'WhatsApp/email are hidden for your account — ask the owner for full access.'}</div>
+    <div class="desc">${REGISTRATIONS.length} squad(s) submitted.</div>
     <div class="a-card" style="overflow:auto;">
       ${REGISTRATIONS.length ? `
       <table class="reg-table">
