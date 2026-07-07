@@ -232,7 +232,7 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
   <div class="hero-eyebrow">BGMI · Battlegrounds Mobile India</div>
   <img class="hero-logo" id="heroLogoImg" style="display:none;">
   <h1>ROYAL LEGACY<br>ESPORTS</h1>
-  <p class="hero-sub" id="heroTagline">A legacy is not inherited — it is conquered, drop after drop.</p>
+  <p class="hero-sub" id="heroTagline">Loading content configuration...</p>
   <div class="hero-actions">
     <a class="btn btn-primary" href="#register" onclick="scrollTo('register')">Register Your Squad</a>
     <a class="btn btn-ghost" href="#tournament" onclick="scrollTo('tournament')">View Tournament</a>
@@ -361,6 +361,11 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
 <div class="toast" id="toast"></div>
 
 <script>
+// ---------------------------------------------------------
+// REPLACED WITH YOUR GOOGLE WEB APP URL
+// ---------------------------------------------------------
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2ECfo38vFP5ObQixdWfXz4sldf3FOgruMJg0RDPzmbLBvocbcbYU7VfDVEl3JC4CnqQ/exec'; 
+
 let CONTENT = null;
 let SESSION = null;
 let REGISTRATIONS = [];
@@ -433,13 +438,19 @@ function resizeImage(file, maxDim, quality){
 }
 
 // ---------------------------------------------------------
-// LOCAL STORAGE FIX: Saves your Control Panel changes
+// BACK-END GLOBAL SYNC FIX: Fetches and Saves content via Google Sheet
 // ---------------------------------------------------------
 async function loadContent(){
-  try{
-    const res = localStorage.getItem('site-content');
-    CONTENT = res ? JSON.parse(res) : structuredClone(DEFAULT_CONTENT);
-  }catch(e){
+  try {
+    const response = await fetch(SCRIPT_URL);
+    const resData = await response.json();
+    if(resData && resData.content) {
+      CONTENT = JSON.parse(resData.content);
+    } else {
+      CONTENT = structuredClone(DEFAULT_CONTENT);
+    }
+  } catch(e) {
+    console.log("Database fetch failed, loading default fallback layout.", e);
     CONTENT = structuredClone(DEFAULT_CONTENT);
   }
   CONTENT = Object.assign(structuredClone(DEFAULT_CONTENT), CONTENT, {
@@ -448,7 +459,26 @@ async function loadContent(){
     contact: Object.assign({}, DEFAULT_CONTENT.contact, CONTENT.contact||{}),
   });
 }
-async function saveContent(){ localStorage.setItem('site-content', JSON.stringify(CONTENT)); }
+
+async function saveContent(){
+  // Update local view cache immediately for real-time smoothness
+  localStorage.setItem('site-content', JSON.stringify(CONTENT));
+  
+  // Push configuration globally to the Google Sheet backend architecture
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify({
+        action: 'saveContent',
+        payload: JSON.stringify(CONTENT)
+      }),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+    });
+  } catch (e) {
+    console.error("Global database synchronization failed.", e);
+  }
+}
 
 async function loadRegistrations(){
   try{
@@ -560,9 +590,6 @@ document.getElementById('fScreenshot').addEventListener('change', async (e)=>{
   box.dataset.imgData = dataUrl;
 });
 
-// ---------------------------------------------------------
-// REGISTRATION FIX: Local save + Google Sheets Backup
-// ---------------------------------------------------------
 document.getElementById('regForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const msg = document.getElementById('formMsg');
@@ -590,11 +617,10 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   };
 
   try{
-    // 1. Save locally FIRST so the screenshot and data exist in your Admin Panel
     await saveRegistration(reg);
 
-    // 2. Prepare a lightweight text-only payload for Google Sheets to avoid CORS/Size crashes
     const sheetData = {
+      action: 'registerSquad',
       teamName: reg.teamName,
       ign: reg.ign,
       bgmiUid: reg.bgmiUid,
@@ -602,10 +628,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
       email: reg.email
     };
 
-    const scriptURL = 'https://script.google.com/macros/s/AKfycby2ECfo38vFP5ObQixdWfXz4sldf3FOgruMJg0RDPzmbLBvocbcbYU7VfDVEl3JC4CnqQ/exec'; 
-
-    // 3. Send to Google Sheets instantly (bypasses browser security block)
-    fetch(scriptURL, {
+    fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors', 
       body: JSON.stringify(sheetData),
@@ -647,7 +670,6 @@ async function doLogin(){
   const hash = await sha256(pass);
 
   if(user === 'admin'){
-    // Uses the password hash you set earlier
     if(hash === "c1a2ac7df761eb1d3def1869a184dd66529dfc94f06b53e122f6ecb120be3cfe"){
       SESSION = { role:'admin', username:'admin', permissions:{content:true, registrations:true, sensitive:true, moderators:true} };
     }
