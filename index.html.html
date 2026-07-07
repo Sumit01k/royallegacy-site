@@ -378,7 +378,6 @@ const DEFAULT_CONTENT = {
     email: "contact@royallegacy.gg",
     instagram: "", discord: "", youtube: ""
   },
-  adminHash: null,
   moderators: []
 };
 
@@ -559,10 +558,11 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
     timestamp: Date.now()
   };
 
-  try {
-    // PASTE YOUR GOOGLE WEB APP URL HERE
+  try{
+    
+    // *** CONNECTING TO GOOGLE SHEET WEB APP ***
     const scriptURL = 'https://script.google.com/macros/s/AKfycby2ECfo38vFP5ObQixdWfXz4sldf3FOgruMJg0RDPzmbLBvocbcbYU7VfDVEl3JC4CnqQ/exec'; 
-
+       
     await fetch(scriptURL, {
       method: 'POST',
       body: JSON.stringify(reg),
@@ -584,18 +584,9 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
 });
 
 function openLogin(){ renderLoginModal(); openOverlay('loginOverlay'); }
+
 function renderLoginModal(){
   const body = document.getElementById('loginModalBody');
-  if(!CONTENT.adminHash){
-    body.innerHTML = `
-      <h3>Set Up Admin Account</h3>
-      <p class="sub">No admin password exists yet. Create one now — this is the only owner login for TRL's control panel.</p>
-      <div class="field"><label>New Admin Password</label><input type="password" id="setupPass" placeholder="Minimum 8 characters"></div>
-      <div class="field"><label>Confirm Password</label><input type="password" id="setupPass2"></div>
-      <button class="a-btn" style="width:100%;" onclick="setupAdmin()">Create Admin Account</button>
-    `;
-    return;
-  }
   body.innerHTML = `
     <h3>Control Panel Login</h3>
     <p class="sub">Owner logs in as <b>admin</b>. Moderators use the username assigned to them.</p>
@@ -605,19 +596,7 @@ function renderLoginModal(){
     <button class="a-btn" style="width:100%;" onclick="doLogin()">Log In</button>
   `;
 }
-async function setupAdmin(){
-  const p1 = document.getElementById('setupPass').value;
-  const p2 = document.getElementById('setupPass2').value;
-  if(p1.length < 8){ showToast('Password must be at least 8 characters'); return; }
-  if(p1 !== p2){ showToast('Passwords do not match'); return; }
-  CONTENT.adminHash = await sha256(p1);
-  await saveContent();
-  showToast('Admin account created — logging in…');
-  SESSION = { role:'admin', username:'admin', permissions:{content:true, registrations:true, sensitive:true, moderators:true} };
-  closeOverlay('loginOverlay');
-  await loadRegistrations();
-  enterAdmin();
-}
+
 async function doLogin(){
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
@@ -625,7 +604,8 @@ async function doLogin(){
   const hash = await sha256(pass);
 
   if(user === 'admin'){
-    if(hash === CONTENT.adminHash){
+    // *** CHANGE THIS: HARDCODED HASH GOES HERE ***
+    if(hash === "c1a2ac7df761eb1d3def1869a184dd66529dfc94f06b53e122f6ecb120be3cfe"){
       SESSION = { role:'admin', username:'admin', permissions:{content:true, registrations:true, sensitive:true, moderators:true} };
     }
   }else{
