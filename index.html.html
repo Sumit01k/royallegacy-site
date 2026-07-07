@@ -432,10 +432,11 @@ function resizeImage(file, maxDim, quality){
   });
 }
 
+// CHANGED TO LOCALSTORAGE TO FIX CRASHING 
 async function loadContent(){
   try{
-    const res = await window.storage.get('site-content', true);
-    CONTENT = res ? JSON.parse(res.value) : structuredClone(DEFAULT_CONTENT);
+    const res = localStorage.getItem('site-content');
+    CONTENT = res ? JSON.parse(res) : structuredClone(DEFAULT_CONTENT);
   }catch(e){
     CONTENT = structuredClone(DEFAULT_CONTENT);
   }
@@ -445,21 +446,23 @@ async function loadContent(){
     contact: Object.assign({}, DEFAULT_CONTENT.contact, CONTENT.contact||{}),
   });
 }
-async function saveContent(){ await window.storage.set('site-content', JSON.stringify(CONTENT), true); }
+async function saveContent(){ localStorage.setItem('site-content', JSON.stringify(CONTENT)); }
 
 async function loadRegistrations(){
   try{
-    const list = await window.storage.list('reg:', true);
-    const keys = (list && list.keys) || [];
     const items = [];
-    for(const k of keys){
-      try{ const r = await window.storage.get(k, true); if(r) items.push(JSON.parse(r.value)); }catch(e){}
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k.startsWith('reg:')){
+        try{ items.push(JSON.parse(localStorage.getItem(k))); }catch(e){}
+      }
     }
     items.sort((a,b)=> (b.timestamp||0) - (a.timestamp||0));
     REGISTRATIONS = items;
   }catch(e){ REGISTRATIONS = []; }
 }
-async function saveRegistration(reg){ await window.storage.set('reg:'+reg.id, JSON.stringify(reg), true); }
+async function saveRegistration(reg){ localStorage.setItem('reg:'+reg.id, JSON.stringify(reg)); }
+// END OF LOCALSTORAGE FIX
 
 const SOCIAL_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>',
