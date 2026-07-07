@@ -43,7 +43,9 @@ body{ margin:0; background:var(--void); color:var(--text); font-family:var(--fon
   padding:14px 5vw; background:rgba(10,11,13,.86); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
 .brand{display:flex; align-items:center; gap:12px; cursor:pointer;}
 .crest{width:38px; height:38px; flex:none;}
-.crest-img{width:38px; height:38px; object-fit:contain; border-radius:6px; flex:none;}
+.crest-img{height:42px; width:auto; max-width:220px; object-fit:contain; flex:none;}
+.right-logo-btn{height:36px; width:auto; max-width:120px; object-fit:contain; display:block;}
+.nav-actions{display:flex; align-items:center; gap:20px;}
 .brand-text{font-family:var(--font-display); font-weight:700; letter-spacing:.06em; font-size:15px; line-height:1.15;}
 .brand-text small{display:block; font-family:var(--font-hud); font-weight:600; color:var(--gold); letter-spacing:.25em; font-size:10px; margin-top:2px;}
 .nav-links{display:flex; gap:30px; font-family:var(--font-hud); font-weight:600; letter-spacing:.08em; font-size:14px;}
@@ -208,7 +210,7 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
       <text x="24" y="27" text-anchor="middle" font-family="Cinzel" font-size="13" fill="var(--gold-bright)" font-weight="700">TRL</text>
     </svg>
     <img class="crest-img" id="navCrestImg" style="display:none;">
-    <div class="brand-text">ROYAL LEGACY<small>ESPORTS</small></div>
+    <div class="brand-text" id="navBrandText">ROYAL LEGACY<small>ESPORTS</small></div>
   </div>
   <div class="nav-links" id="navLinks">
     <a href="#home" onclick="scrollTo('home')">Home</a>
@@ -217,8 +219,13 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
     <a href="#sponsors" onclick="scrollTo('sponsors')">Sponsors</a>
     <a href="#contact" onclick="scrollTo('contact')">Contact</a>
   </div>
-  <button class="nav-cta" onclick="scrollTo('register')">Register Squad</button>
-  <button class="burger" onclick="toggleNav()">☰</button>
+  <div class="nav-actions">
+    <a id="navRightLogoLink" href="#" target="_blank" style="display:none;">
+      <img id="navRightLogoImg" class="right-logo-btn">
+    </a>
+    <button class="nav-cta" onclick="scrollTo('register')">Register Squad</button>
+    <button class="burger" onclick="toggleNav()">☰</button>
+  </div>
 </nav>
 
 <header class="hero" id="home">
@@ -378,7 +385,9 @@ const DEFAULT_CONTENT = {
     email: "contact@royallegacy.gg",
     instagram: "", discord: "", youtube: ""
   },
-  moderators: []
+  moderators: [],
+  navRightLogo: null,
+  navRightLink: "#"
 };
 
 async function sha256(text){
@@ -467,12 +476,26 @@ function renderPublic(){
   const navSvg = document.getElementById('navCrestSvg');
   const navImg = document.getElementById('navCrestImg');
   const heroImg = document.getElementById('heroLogoImg');
+  const navText = document.getElementById('navBrandText');
+  
   if(CONTENT.orgLogo){
     navSvg.style.display = 'none'; navImg.style.display = 'block'; navImg.src = CONTENT.orgLogo;
     heroImg.style.display = 'block'; heroImg.src = CONTENT.orgLogo;
+    navText.style.display = 'none';
   }else{
     navSvg.style.display = 'block'; navImg.style.display = 'none';
     heroImg.style.display = 'none';
+    navText.style.display = 'block';
+  }
+
+  const rightLink = document.getElementById('navRightLogoLink');
+  const rightImg = document.getElementById('navRightLogoImg');
+  if(CONTENT.navRightLogo){
+    rightLink.style.display = 'block';
+    rightLink.href = CONTENT.navRightLink || '#';
+    rightImg.src = CONTENT.navRightLogo;
+  }else{
+    rightLink.style.display = 'none';
   }
 
   const t = CONTENT.tournament;
@@ -559,8 +582,6 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   };
 
   try{
-    
-    // *** CONNECTING TO GOOGLE SHEET WEB APP ***
     const scriptURL = 'https://script.google.com/macros/s/AKfycby2ECfo38vFP5ObQixdWfXz4sldf3FOgruMJg0RDPzmbLBvocbcbYU7VfDVEl3JC4CnqQ/exec'; 
        
     await fetch(scriptURL, {
@@ -604,7 +625,6 @@ async function doLogin(){
   const hash = await sha256(pass);
 
   if(user === 'admin'){
-    // *** CHANGE THIS: HARDCODED HASH GOES HERE ***
     if(hash === "c1a2ac7df761eb1d3def1869a184dd66529dfc94f06b53e122f6ecb120be3cfe"){
       SESSION = { role:'admin', username:'admin', permissions:{content:true, registrations:true, sensitive:true, moderators:true} };
     }
@@ -668,10 +688,23 @@ function renderContentTab(main){
     <div class="desc">Edit your org logo, hero stats, banner and tournament details.</div>
 
     <div class="a-card">
-      <h4>Org Logo</h4>
+      <h4>Main Org Logo (Top Left)</h4>
+      <div class="desc" style="margin-bottom:10px;">Uploading a logo here will replace the default "TRL" crest and text.</div>
       <input type="file" accept="image/*" id="orgLogoFile">
-      ${CONTENT.orgLogo ? `<img src="${CONTENT.orgLogo}" class="thumb-sq">` : '<div style="color:var(--text-dim); font-size:13px; margin-top:8px;">No custom logo yet — using the default TRL crest.</div>'}
+      ${CONTENT.orgLogo ? `<img src="${CONTENT.orgLogo}" class="thumb-sq" style="width:auto; height:42px;">` : '<div style="color:var(--text-dim); font-size:13px; margin-top:8px;">Using default TRL crest.</div>'}
       <div style="margin-top:14px;"><button class="a-btn" onclick="saveOrgLogo()">Save Logo</button> ${CONTENT.orgLogo ? '<button class="a-btn secondary" onclick="removeOrgLogo()">Remove Logo</button>' : ''}</div>
+    </div>
+
+    <div class="a-card">
+      <h4>Top Right Image Button</h4>
+      <div class="desc" style="margin-bottom:10px;">Add a secondary image (like a sponsor or affiliate) next to the Register button.</div>
+      <div class="a-field"><label>Link URL (where it goes when clicked)</label><input id="in_navRightLink" value="${escapeHtml(CONTENT.navRightLink||'')}"></div>
+      <input type="file" accept="image/*" id="rightLogoFile">
+      ${CONTENT.navRightLogo ? `<img src="${CONTENT.navRightLogo}" class="thumb-sq" style="width:auto; height:36px;">` : ''}
+      <div style="margin-top:14px;">
+        <button class="a-btn" onclick="saveRightLogo()">Save Right Logo</button>
+        ${CONTENT.navRightLogo ? '<button class="a-btn secondary" onclick="removeRightLogo()">Remove Logo</button>' : ''}
+      </div>
     </div>
 
     <div class="a-card">
@@ -707,6 +740,25 @@ function renderContentTab(main){
     <button class="a-btn" onclick="saveContentTab()">Save Changes</button>
   `;
 }
+
+async function saveRightLogo(){
+  const file = document.getElementById('rightLogoFile').files[0];
+  CONTENT.navRightLink = document.getElementById('in_navRightLink').value.trim();
+  if(file){ CONTENT.navRightLogo = await resizeImage(file, 300, 0.85); }
+  await saveContent();
+  renderPublic();
+  renderContentTab(document.getElementById('adminMain'));
+  showToast('Top right logo updated');
+}
+
+async function removeRightLogo(){
+  CONTENT.navRightLogo = null;
+  await saveContent();
+  renderPublic();
+  renderContentTab(document.getElementById('adminMain'));
+  showToast('Top right logo removed');
+}
+
 async function saveOrgLogo(){
   const file = document.getElementById('orgLogoFile').files[0];
   if(!file){ showToast('Choose an image first'); return; }
