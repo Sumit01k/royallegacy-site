@@ -232,7 +232,7 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
   <div class="hero-eyebrow">BGMI · Battlegrounds Mobile India</div>
   <img class="hero-logo" id="heroLogoImg" style="display:none;">
   <h1>ROYAL LEGACY<br>ESPORTS</h1>
-  <p class="hero-sub" id="heroTagline">Loading configuration metrics safely over the wire...</p>
+  <p class="hero-sub" id="heroTagline">Connecting to cloud architecture panel...</p>
   <div class="hero-actions">
     <a class="btn btn-primary" href="#register" onclick="scrollTo('register')">Register Your Squad</a>
     <a class="btn btn-ghost" href="#tournament" onclick="scrollTo('tournament')">View Tournament</a>
@@ -361,10 +361,14 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
 <div class="toast" id="toast"></div>
 
 <script>
-// ---------------------------------------------------------
-// REPLACED WITH YOUR GOOGLE WEB APP DEPLOYMENT URL
-// ---------------------------------------------------------
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2ECfo38vFP5ObQixdWfXz4sldf3FOgruMJg0RDPzmbLBvocbcbYU7VfDVEl3JC4CnqQ/exec'; 
+// ======================================================================================
+// 🚀 CONNECTED CLOUD SERVICE ROUTER PIPELINE KEYS
+// ======================================================================================
+const BIN_ID = '6a4cdcd8da38895dfe3a24d0'; 
+const SECRET_KEY = '$2a$10$YR6NMF0MPIGf9LzHil.sgO.57UeDvNBmc9d.unTKOh5xIlNyOsTki'; 
+
+// Google Apps Script endpoint for standard text sheet registration streams
+const SHEET_REG_URL = 'https://script.google.com/macros/s/AKfycby2ECfo38vFP5ObQixdWfXz4sldf3FOgruMJg0RDPzmbLBvocbcbYU7VfDVEl3JC4CnqQ/exec';
 
 let CONTENT = null;
 let SESSION = null;
@@ -437,21 +441,40 @@ function resizeImage(file, maxDim, quality){
   });
 }
 
-// ---------------------------------------------------------
-// GLOBAL SYNCHRONIZATION ENGINE: Saves configuration across devices safely via FormData structures
-// ---------------------------------------------------------
+// ------------------------------------------------------------------------------
+// GLOBAL CONFIGURATION ROUTING (Handles initialization automatically if blank)
+// ------------------------------------------------------------------------------
 async function loadContent(){
+  if(BIN_ID.includes('00000000') || SECRET_KEY.includes('XXXXX')){
+    console.warn("Keys unconfigured. Running inside local sandboxed engine.");
+    CONTENT = structuredClone(DEFAULT_CONTENT);
+    return;
+  }
   try {
-    const response = await fetch(SCRIPT_URL);
-    const resData = await response.json();
-    if(resData && resData.content) {
-      CONTENT = JSON.parse(resData.content);
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+      method: 'GET',
+      headers: { 'X-Master-Key': SECRET_KEY }
+    });
+    const json = await res.json();
+    
+    // Auto-Initialization Check: If server bin is blank, program values instantly
+    if(json && json.record && (Object.keys(json.record).length === 1 || !json.record.heroTagline)) {
+      console.log("Empty server template detected. Initializing database schema configuration properties...");
+      CONTENT = structuredClone(DEFAULT_CONTENT);
+      await saveContent(); 
+    } else if (json && json.record) {
+      CONTENT = json.record;
     } else {
       CONTENT = structuredClone(DEFAULT_CONTENT);
     }
   } catch(e) {
-    console.log("Database fetch failed, loading default fallback layout.", e);
-    CONTENT = structuredClone(DEFAULT_CONTENT);
+    console.error("Cloud backend disconnect. Accessing emergency browser storage blocks.", e);
+    try {
+      const backup = localStorage.getItem('site-content');
+      CONTENT = backup ? JSON.parse(backup) : structuredClone(DEFAULT_CONTENT);
+    } catch(err) {
+      CONTENT = structuredClone(DEFAULT_CONTENT);
+    }
   }
   CONTENT = Object.assign(structuredClone(DEFAULT_CONTENT), CONTENT, {
     stats: Object.assign({}, DEFAULT_CONTENT.stats, CONTENT.stats||{}),
@@ -461,23 +484,25 @@ async function loadContent(){
 }
 
 async function saveContent(){
-  // Update local view cache immediately for client fluid performance
   localStorage.setItem('site-content', JSON.stringify(CONTENT));
   
-  // Push payload configuration globally to the back-end sheet architecture via safe transmission formatting
-  try {
-    const formData = new FormData();
-    formData.append('action', 'saveContent');
-    formData.append('payload', JSON.stringify(CONTENT));
+  if(BIN_ID.includes('00000000') || SECRET_KEY.includes('XXXXX')){
+    return;
+  }
 
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: formData
+  try {
+    await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': SECRET_KEY
+      },
+      body: JSON.stringify(CONTENT)
     });
     showToast('Changes synchronized globally across all devices!');
-  } catch (e) {
-    console.error("Global database synchronization failed.", e);
-    showToast('Failed to write changes to spreadsheet.');
+  } catch(e) {
+    console.error("Cloud synchronization timeout pipeline error.", e);
+    showToast('Failed to write changes to cloud server database.');
   }
 }
 
@@ -495,7 +520,7 @@ async function loadRegistrations(){
   }catch(e){ REGISTRATIONS = []; }
 }
 async function saveRegistration(reg){ localStorage.setItem('reg:'+reg.id, JSON.stringify(reg)); }
-// ---------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 const SOCIAL_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>',
@@ -621,7 +646,6 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
     await saveRegistration(reg);
 
     const sheetData = {
-      action: 'registerSquad',
       teamName: reg.teamName,
       ign: reg.ign,
       bgmiUid: reg.bgmiUid,
@@ -629,7 +653,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
       email: reg.email
     };
 
-    fetch(SCRIPT_URL, {
+    fetch(SHEET_REG_URL, {
       method: 'POST',
       mode: 'no-cors', 
       body: JSON.stringify(sheetData),
