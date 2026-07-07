@@ -232,7 +232,7 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
   <div class="hero-eyebrow">BGMI · Battlegrounds Mobile India</div>
   <img class="hero-logo" id="heroLogoImg" style="display:none;">
   <h1>ROYAL LEGACY<br>ESPORTS</h1>
-  <p class="hero-sub" id="heroTagline">Loading content configuration...</p>
+  <p class="hero-sub" id="heroTagline">Loading configuration metrics safely over the wire...</p>
   <div class="hero-actions">
     <a class="btn btn-primary" href="#register" onclick="scrollTo('register')">Register Your Squad</a>
     <a class="btn btn-ghost" href="#tournament" onclick="scrollTo('tournament')">View Tournament</a>
@@ -362,7 +362,7 @@ footer{padding:40px 5vw; border-top:1px solid var(--line); display:flex; justify
 
 <script>
 // ---------------------------------------------------------
-// REPLACED WITH YOUR GOOGLE WEB APP URL
+// REPLACED WITH YOUR GOOGLE WEB APP DEPLOYMENT URL
 // ---------------------------------------------------------
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2ECfo38vFP5ObQixdWfXz4sldf3FOgruMJg0RDPzmbLBvocbcbYU7VfDVEl3JC4CnqQ/exec'; 
 
@@ -438,7 +438,7 @@ function resizeImage(file, maxDim, quality){
 }
 
 // ---------------------------------------------------------
-// BACK-END GLOBAL SYNC FIX: Fetches and Saves content via Google Sheet
+// GLOBAL SYNCHRONIZATION ENGINE: Saves configuration across devices safely via FormData structures
 // ---------------------------------------------------------
 async function loadContent(){
   try {
@@ -461,22 +461,23 @@ async function loadContent(){
 }
 
 async function saveContent(){
-  // Update local view cache immediately for real-time smoothness
+  // Update local view cache immediately for client fluid performance
   localStorage.setItem('site-content', JSON.stringify(CONTENT));
   
-  // Push configuration globally to the Google Sheet backend architecture
+  // Push payload configuration globally to the back-end sheet architecture via safe transmission formatting
   try {
+    const formData = new FormData();
+    formData.append('action', 'saveContent');
+    formData.append('payload', JSON.stringify(CONTENT));
+
     await fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify({
-        action: 'saveContent',
-        payload: JSON.stringify(CONTENT)
-      }),
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+      body: formData
     });
+    showToast('Changes synchronized globally across all devices!');
   } catch (e) {
     console.error("Global database synchronization failed.", e);
+    showToast('Failed to write changes to spreadsheet.');
   }
 }
 
