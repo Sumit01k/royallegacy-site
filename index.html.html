@@ -432,7 +432,9 @@ function resizeImage(file, maxDim, quality){
   });
 }
 
-// CHANGED TO LOCALSTORAGE TO FIX CRASHING 
+// ---------------------------------------------------------
+// LOCAL STORAGE FIX: Saves your Control Panel changes
+// ---------------------------------------------------------
 async function loadContent(){
   try{
     const res = localStorage.getItem('site-content');
@@ -462,7 +464,7 @@ async function loadRegistrations(){
   }catch(e){ REGISTRATIONS = []; }
 }
 async function saveRegistration(reg){ localStorage.setItem('reg:'+reg.id, JSON.stringify(reg)); }
-// END OF LOCALSTORAGE FIX
+// ---------------------------------------------------------
 
 const SOCIAL_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>',
@@ -558,6 +560,9 @@ document.getElementById('fScreenshot').addEventListener('change', async (e)=>{
   box.dataset.imgData = dataUrl;
 });
 
+// ---------------------------------------------------------
+// REGISTRATION FIX: Local save + Google Sheets Backup
+// ---------------------------------------------------------
 document.getElementById('regForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const msg = document.getElementById('formMsg');
@@ -585,13 +590,27 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   };
 
   try{
+    // 1. Save locally FIRST so the screenshot and data exist in your Admin Panel
+    await saveRegistration(reg);
+
+    // 2. Prepare a lightweight text-only payload for Google Sheets to avoid CORS/Size crashes
+    const sheetData = {
+      teamName: reg.teamName,
+      ign: reg.ign,
+      bgmiUid: reg.bgmiUid,
+      whatsapp: reg.whatsapp,
+      email: reg.email
+    };
+
     const scriptURL = 'https://script.google.com/macros/s/AKfycby2ECfo38vFP5ObQixdWfXz4sldf3FOgruMJg0RDPzmbLBvocbcbYU7VfDVEl3JC4CnqQ/exec'; 
-       
-    await fetch(scriptURL, {
+
+    // 3. Send to Google Sheets instantly (bypasses browser security block)
+    fetch(scriptURL, {
       method: 'POST',
-      body: JSON.stringify(reg),
+      mode: 'no-cors', 
+      body: JSON.stringify(sheetData),
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-    });
+    }).catch(e => console.log('Sheet backup failed, but local saved.', e));
 
     msg.classList.add('ok');
     msg.textContent = 'Registration received! Our team will verify your screenshot and reach out on WhatsApp.';
@@ -628,6 +647,7 @@ async function doLogin(){
   const hash = await sha256(pass);
 
   if(user === 'admin'){
+    // Uses the password hash you set earlier
     if(hash === "c1a2ac7df761eb1d3def1869a184dd66529dfc94f06b53e122f6ecb120be3cfe"){
       SESSION = { role:'admin', username:'admin', permissions:{content:true, registrations:true, sensitive:true, moderators:true} };
     }
